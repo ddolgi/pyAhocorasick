@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- encoding=utf-8 -*- 
 '''
 Created on Mar 15, 2014
@@ -20,13 +21,9 @@ class Ahocorasick(object):
         self.__root = Node()
         
     def addWord(self, word):
-        '''
-            @param word: add word to Tire tree 
-                            添加关键词到Tire树中
-        '''
         tmp = self.__root
         for i in range(0, len(word)):
-            if not tmp.next.has_key(word[i]):
+            if word[i] not in tmp.next:
                 tmp.next[word[i]] = Node()
             tmp = tmp.next[word[i]]
         tmp.isWord = True
@@ -34,7 +31,6 @@ class Ahocorasick(object):
     def make(self):
         '''
             build the fail function 
-            构建自动机，失效函数
         '''
         tmpQueue = []
         tmpQueue.append(self.__root)
@@ -47,7 +43,7 @@ class Ahocorasick(object):
                 else:
                     p = temp.fail
                     while p is not None:
-                        if p.next.has_key(k):
+                        if k in p.next:
                             temp.next[k].fail = p.next[k]
                             break
                         p = p.fail
@@ -67,30 +63,23 @@ class Ahocorasick(object):
         
         while currentPosition < len(content):
             word = content[currentPosition]
-            # 检索状态机，直到匹配
-            while p.next.has_key(word) == False and p != self.__root:
+            while word not in p.next and p != self.__root:
                 p = p.fail
             
-            if p.next.has_key(word):
+            if word in p.next:
                 if p == self.__root:
-                    # 若当前节点是根且存在转移状态，则说明是匹配词的开头，记录词的起始位置
                     startWordIndex = currentPosition
-                # 转移状态机的状态
                 p = p.next[word]
             else:
                 p = self.__root
             
             if p.isWord:
-                # 若状态为词的结尾，则把词放进结果集
                 result.append((startWordIndex, currentPosition))
             
             currentPosition += 1
         return result
     
-    def replace(self, content):
-        '''
-            
-        '''
+    def mask(self, content):
         replacepos = self.search(content)
         result = content
         for i in replacepos:
@@ -100,7 +89,10 @@ class Ahocorasick(object):
 
 if __name__ == '__main__':
     ah = Ahocorasick()
-    ah.addWord(u'测试')
-    ah.addWord(u"我是")
+    ah.addWord('abc')
+    ah.addWord('bc')
+    ah.addWord('cd')
     ah.make()
-    print ah.search(u'测试123我是好人')
+    print(ah.search(u'abc123cdef'))
+    print(ah.mask(u'abc123cdef'))
+
